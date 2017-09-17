@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<document>
+	<library imageRootPath="icons" product="DMT" symbol="dmtjeegradlediscoverer" version="1.0"
+	         dependencies="delivery:2.9;dmtdevjeetechno:1.4">
+		
+        <entity symbol="JeeGradleDiscoverer" baseEntity="dmtdevjeetechno.J2EESourcesBaseDiscoverer" label="Gradle Java project" viewForm="subForm">
+            <field length="500" override="true" symbol="javaClassName" valueEntity="system.String">
+                <value formula="true">'com.castsoftware.dmt.discoverer.jee.gradle.JeeGradleDiscoverer'</value>
+            </field>
+            <field override="true" symbol="projectsFilesPatterns">
+                <value formula="true">'build.gradle'</value>
+            </field>
+            <!--
+            <field override="true" symbol="resourceProjectsPatterns">
+                <value formula="true">'build.gradle'</value>
+            </field>
+            -->
+        </entity>
+
+	</library>
+	
+	<conversion requires="" provides="dmtjeegradlediscoverer:1.0">
+		<!-- Library installation -->
+	</conversion>	
+</document>

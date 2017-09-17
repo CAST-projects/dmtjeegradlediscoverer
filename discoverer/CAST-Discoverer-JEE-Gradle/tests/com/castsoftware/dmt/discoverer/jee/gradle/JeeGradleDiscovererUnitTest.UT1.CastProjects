@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Projects packageId="fe441eb6-b709-46b2-88e8-b794d4ec1af2" packageName="My Package" packageType="FileSourceCodeRepository" packageConnectionPath="D:/Data/Customers/ATT/CANOPI/Cramer RB">
+ <PackageRootPath path=""/>
+ <Project projectId="cis/cis-inventory/cis-staging-inventory/build.gradle" projectType="dmtdevjeetechno.J2EEProject" projectResourceId="cis/cis-inventory/cis-staging-inventory/build.gradle" projectPath="cis/cis-inventory/cis-staging-inventory" projectOrigin="Gradle Java project" selectionStatus="Selected">
+  <Metadata name="#!$?DESCRIPTOR" value="build.gradle"/>
+  <Languages>
+   <Language languageId="1" languageName="JavaLanguage" sourceFilesPattern="*.java;*.sqlj" sourceFilesCollation="WindowsNTFS">
+    <ResourceTypes>
+     <ResourceType resourceTypeId="1" resourceTypeName="JavaContainerLanguage" resourceFilesCollation="WindowsNTFS" resourceContainersPattern="*.jar" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+     <ResourceType resourceTypeId="2" resourceTypeName="XMLLanguage" resourceFilesPattern="*.xml" resourceFilesCollation="WindowsNTFS" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+     <ResourceType resourceTypeId="3" resourceTypeName="JavaPropertiesLanguage" resourceFilesPattern="*.properties" resourceFilesCollation="WindowsNTFS" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+    </ResourceTypes>
+   </Language>
+   <Language languageId="2" languageName="JavaWebServerLanguage" sourceFilesPattern="*.jsp" sourceFilesCollation="WindowsNTFS">
+    <ResourceTypes>
+     <ResourceType resourceTypeId="1" resourceTypeName="JavaWebContainerLanguage" resourceFilesCollation="WindowsNTFS" resourceContainersPattern="*.ear;*.war" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+    </ResourceTypes>
+   </Language>
+   <Language languageId="3" languageName="JavaWebClientLanguage" sourceFilesPattern="*.htm;*.html;*.htc;*.js;*.vbs" sourceFilesCollation="WindowsNTFS">
+   </Language>
+  </Languages>
+ </Project>
+ <Project projectId="cis/cis-inventory/build.gradle" projectType="dmtdevjeetechno.J2EEProject" projectResourceId="cis/cis-inventory/build.gradle" projectPath="cis/cis-inventory" projectOrigin="Gradle Java project" selectionStatus="Selected">
+  <Metadata name="#!$?DESCRIPTOR" value="build.gradle"/>
+  <Languages>
+   <Language languageId="1" languageName="JavaLanguage" sourceFilesPattern="*.java;*.sqlj" sourceFilesCollation="WindowsNTFS">
+    <ResourceTypes>
+     <ResourceType resourceTypeId="1" resourceTypeName="JavaContainerLanguage" resourceFilesCollation="WindowsNTFS" resourceContainersPattern="*.jar" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+     <ResourceType resourceTypeId="2" resourceTypeName="XMLLanguage" resourceFilesPattern="*.xml" resourceFilesCollation="WindowsNTFS" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+     <ResourceType resourceTypeId="3" resourceTypeName="JavaPropertiesLanguage" resourceFilesPattern="*.properties" resourceFilesCollation="WindowsNTFS" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+    </ResourceTypes>
+   </Language>
+   <Language languageId="2" languageName="JavaWebServerLanguage" sourceFilesPattern="*.jsp" sourceFilesCollation="WindowsNTFS">
+    <ResourceTypes>
+     <ResourceType resourceTypeId="1" resourceTypeName="JavaWebContainerLanguage" resourceFilesCollation="WindowsNTFS" resourceContainersPattern="*.ear;*.war" resourceContainersCollation="WindowsNTFS">
+     </ResourceType>
+    </ResourceTypes>
+   </Language>
+   <Language languageId="3" languageName="JavaWebClientLanguage" sourceFilesPattern="*.htm;*.html;*.htc;*.js;*.vbs" sourceFilesCollation="WindowsNTFS">
+   </Language>
+  </Languages>
+ </Project>
+</Projects>

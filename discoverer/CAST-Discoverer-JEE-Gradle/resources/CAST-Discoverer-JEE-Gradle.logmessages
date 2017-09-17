@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<messages>
+	<language name="English">
+		<message id="cast.dmt.discover.jee.gradle.buidProjectStart" format="Gradle Java project: Start processing of project %PATH%" />
+		<message id="cast.dmt.discover.jee.gradle.buidProjectEnd" format="Gradle Java project: End processing of project %PATH%" />
+		<message id="cast.dmt.discover.jee.gradle.buidProjectStart" format="Gradle Java project: Start reparsing of project %PATH%" />
+		<message id="cast.dmt.discover.jee.gradle.buidProjectEnd" format="Gradle Java project: End reparsing of project %PATH%" />
+	</language>
+</messages>
