@@ -8,7 +8,8 @@
     <owners>CAST</owners>
     <licenseUrl>https://help.castsoftware.com/hc/en-us/articles/212612648-AIP-Extension-License</licenseUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <projectUrl>http://doc.castsoftware.com/display/DOCEXT/CPP+Compilation+Database+Discoverer+1.0</projectUrl>
+    <projectUrl>https://github.com/CAST-projects/dmtjeegradlediscoverer</projectUrl>
+    <releaseNotes>https://github.com/CAST-projects/dmtjeegradlediscoverer/wiki</releaseNotes>
     <description>Support for discovering JEE Gradle projects. It should be used when the JEE source is built with gradle.</description>
     <dependencies>
       <dependency id="CAIP" version="8.2.0"/>

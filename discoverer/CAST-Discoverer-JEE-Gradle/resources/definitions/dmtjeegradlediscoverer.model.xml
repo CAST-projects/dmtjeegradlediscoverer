@@ -8,9 +8,9 @@
                 <value formula="true">'com.castsoftware.dmt.discoverer.jee.gradle.JeeGradleDiscoverer'</value>
             </field>
             <field override="true" symbol="projectsFilesPatterns">
-                <value formula="true">'build.gradle'</value>
+                <value formula="true">'*.gradle'</value>
             </field>
-            <!--
+            <!--  
             <field override="true" symbol="resourceProjectsPatterns">
                 <value formula="true">'build.gradle'</value>
             </field>
