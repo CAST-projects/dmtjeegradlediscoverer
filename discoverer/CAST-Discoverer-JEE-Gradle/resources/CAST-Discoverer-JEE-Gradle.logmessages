@@ -1,10 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <messages>
 	<language name="English">
-		<message id="cast.dmt.discover.jee.gradle.buidProjectStart" format="Gradle Java project: Start processing of project %PATH%" />
-		<message id="cast.dmt.discover.jee.gradle.buidProjectEnd" format="Gradle Java project: End processing of project %PATH%" />
-		<message id="cast.dmt.discover.jee.gradle.buidProjectStart" format="Gradle Java project: Start reparsing of project %PATH%" />
-		<message id="cast.dmt.discover.jee.gradle.buidProjectEnd" format="Gradle Java project: End reparsing of project %PATH%" />
-		<message id="cast.dmt.discover.jee.gradle.missingLanguage" format="Gradle Java project: missing language %PATH%. Invalid extension." remediation="Check if in the bug fix of the extension and update it." />
+    <!-- ERROR -->
+		<message id="cast.dmt.discover.jee.gradle.missingLanguage" format="Missing language %PATH%. Invalid extension." remediation="Check if in the bug fix of the extension and update it." />
+
+    <!-- INFO -->
+		<message id="cast.dmt.discover.jee.gradle.buidProjectStart" format="Start processing of project %PATH%" />
+		<message id="cast.dmt.discover.jee.gradle.buidProjectEnd" format="End processing of project %PATH%" />
+		<message id="cast.dmt.discover.jee.gradle.buidProjectStart" format="Start reparsing of project %PATH%" />
+		<message id="cast.dmt.discover.jee.gradle.buidProjectEnd" format="End reparsing of project %PATH%" />
 	</language>
 </messages>

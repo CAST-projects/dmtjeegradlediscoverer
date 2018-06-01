@@ -11,8 +11,8 @@ import com.castsoftware.dmt.engine.discovery.BasicProjectsDiscovererAdapter;
 import com.castsoftware.dmt.engine.discovery.IProjectsDiscovererUtilities;
 import com.castsoftware.dmt.engine.discovery.ProjectsDiscovererWrapper.ProfileOrProjectTypeConfiguration.LanguageConfiguration;
 import com.castsoftware.dmt.engine.foldertree.IMetadataInterpreter;
-import com.castsoftware.dmt.engine.project.Profile.IReferencedContents;
 import com.castsoftware.dmt.engine.project.IResourceReadOnly;
+import com.castsoftware.dmt.engine.project.Profile.IReferencedContents;
 import com.castsoftware.dmt.engine.project.Project;
 import com.castsoftware.dmt.engine.validation.GradleProjectHelper;
 import com.castsoftware.util.StringHelper;
@@ -49,11 +49,12 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
         gradleSettings = new HashSet<GradleProject>();
         gradleLibraries = new HashMap<String, GradleLibrary>();
     }
-    private void initLanguages(IProjectsDiscovererUtilities projectsDiscovererUtilities, Project project)
+
+    private static void initLanguages(IProjectsDiscovererUtilities projectsDiscovererUtilities, Project project)
     {
     	if (javaLanguageId > 0)
     		return;
-    	
+
         for (LanguageConfiguration languageConfiguration : projectsDiscovererUtilities.getProjectTypeConfiguration(project.getType()).getLanguageConfigurations())
         {
         	int languageId = languageConfiguration.getLanguageId();
@@ -85,7 +86,7 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
             	continue;
             }
         }
-        if (javaLanguageId == -1) 
+        if (javaLanguageId == -1)
         {
             throw Logging.fatal("cast.dmt.discover.jee.gradle.missingLanguage","LNG","CLanguage");
         }
@@ -96,8 +97,9 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
         if (javaWebClientLanguageId == -1)
         {
             throw Logging.fatal("cast.dmt.discover.jee.gradle.missingLanguage","LNG","CFamilyNotCompilableLanguage");
-        }	
+        }
     }
+
     @Override
     public boolean mustProcessFile(String fileName)
     {
@@ -110,8 +112,8 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
     {
         Logging.info("cast.dmt.discover.jee.gradle.buildProjectStart", "PATH", relativeFilePath);
         initLanguages(projectsDiscovererUtilities,project);
-        
-        
+
+
         if (relativeFilePath.endsWith("settings.gradle"))
         {
             Logging.detail("cast.dmt.discover.jee.gradle.deleteProject", "PATH", relativeFilePath);
@@ -124,10 +126,38 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
 
                 return;
             }
-            else
+
+            gradleSettings.add(gradleProject);
+        }
+        else if (relativeFilePath.endsWith("build.gradle"))
+        {
+            GradleProject gradleProject = gradleProjects.get(relativeFilePath);
+            if (gradleProject == null)
             {
-            	gradleSettings.add(gradleProject);
+                gradleProject = new GradleProject(relativeFilePath);
+                gradleProjects.put(relativeFilePath, gradleProject);
             }
+
+            if (!GradleProjectParser.parse(relativeFilePath, gradleProject, content))
+            {
+                Logging.error("cast.dmt.extend.discover.jee.maven.project.parseError", "FILE_PATH", relativeFilePath);
+
+                Logging.detail("cast.dmt.discover.jee.gradle.deleteProject", "PATH", relativeFilePath);
+
+                projectsDiscovererUtilities.deleteProject(project.getId());
+
+                Logging.info("cast.dmt.discover.jee.gradle.buildProjectEnd", "PATH", relativeFilePath);
+
+                return;
+            }
+
+            if (!gradleProjects.containsKey(relativeFilePath))
+            {
+                // Records the Maven POM parent
+                recordProject(relativeFilePath, gradleProject);
+            }
+            // Asks for a second parsing step of the project, once all the Gradle projects are available
+            project.addFileReference(relativeFilePath, Project.PROJECT_LANGUAGE_ID, IResourceReadOnly.RESOURCE_TYPE_NEUTRAL_ID);
         }
         else if (relativeFilePath.endsWith("deps.gradle"))
         {
@@ -142,37 +172,6 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
             Logging.detail("cast.dmt.discover.jee.gradle.deleteProject", "PATH", relativeFilePath);
             projectsDiscovererUtilities.deleteProject(project.getId());
             return;
-        }
-        else
-        {
-        	GradleProject gradleProject = gradleProjects.get(relativeFilePath);
-        	if (gradleProject == null)
-        	{
-        		gradleProject = new GradleProject(relativeFilePath);
-        		gradleProjects.put(relativeFilePath, gradleProject);
-        	}
-        	if (!GradleProjectParser.parse(relativeFilePath, gradleProject, content))
-	        {
-	            Logging.error("cast.dmt.extend.discover.jee.maven.project.parseError", "FILE_PATH", relativeFilePath);
-	
-	            Logging.detail("cast.dmt.discover.jee.gradle.deleteProject", "PATH", relativeFilePath);
-	
-	            projectsDiscovererUtilities.deleteProject(project.getId());
-	
-	            Logging.info("cast.dmt.discover.jee.gradle.buildProjectEnd", "PATH", relativeFilePath);
-	
-	            return;
-	        }
-	        else
-	        {
-	        	if (!gradleProjects.containsKey(relativeFilePath))
-	        	{
-	        		// Records the Maven POM parent
-		            recordProject(relativeFilePath, gradleProject);
-	        	}
-	            // Asks for a second parsing step of the project, once all the Gradle projects are available
-	            project.addFileReference(relativeFilePath, Project.PROJECT_LANGUAGE_ID, IResourceReadOnly.RESOURCE_TYPE_NEUTRAL_ID);
-	        }
         }
 
         Logging.info("cast.dmt.discover.jee.gradle.buildProjectEnd", "PATH", relativeFilePath);
@@ -211,16 +210,6 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
         GradleProject gradleProject = gradleProjects.get(project.getId());
         assert gradleProject != null;
 
-        // This third step was to expand the pattern references using validation engine, so nothing more to do
-        if (project.getProjectReference(gradleProject.getProjectPath()) != null)
-        {
-            Logging.info("cast.dmt.discover.jee.gradle.finalyzeProjectsDone");
-
-            project.removeResourceReference(gradleProject.getProjectPath());
-
-            return false;
-        }
-
         // Activates dependencies for gradle projects
         if (!parentProjectsSet)
         {
@@ -229,7 +218,7 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
 
             parentProjectsSet = true;
         }
-        
+
         // Removes the second step flag reference
         project.removeResourceReference(gradleProject.getProjectPath());
 
@@ -240,44 +229,52 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
         }
         else
         {
-        	if (!StringHelper.isEmpty(gradleProject.getName()))
-        	{
-        		project.setName(gradleProject.getName());
-        		project.addMetadata("#!$?EXTREF#!$?", gradleProject.getName());
-            	// setName
-                // setMetadata
-                // ...
-        		if (gradleProject.getMainJavaSrcDirs().isEmpty())
-        		{
-        			// specific for CANOPI
-        			if (gradleProject.getName().startsWith("src"))
-        				gradleProject.addMainJavaSrcDir("src");
-        			else
-        				gradleProject.addMainJavaSrcDir("src/java");
-        		}
-        		for (String srcDir : gradleProject.getMainJavaSrcDirs())
-        		{
-        			String sourceDirectory = GradleProjectHelper.buildCanonicalPath(project.getPath() + "/" + srcDir);
-        			project.addSourceDirectoryReference(sourceDirectory, javaLanguageId);
-        		}
+            project.setName(gradleProject.getName());
+            project.addMetadata("#!$?EXTREF#!$?", gradleProject.getName());
+            if (gradleProject.getMainJavaSrcDirs().isEmpty())
+            {
+                // default value
+                gradleProject.addMainJavaSrcDir("src/main/java");
+
+                // specific for CANOPI
+                // if (gradleProject.getName().startsWith("src"))
+                // gradleProject.addMainJavaSrcDir("src");
+                // else
+                // gradleProject.addMainJavaSrcDir("src/java");
+            }
+            for (String srcDir : gradleProject.getMainJavaSrcDirs())
+            {
+                String sourceDirectory = GradleProjectHelper.buildCanonicalPath(project.getPath() + "/" + srcDir);
+                project.addSourceDirectoryReference(sourceDirectory, javaLanguageId);
+            }
 //        		for (GradleProject compileProject : gradleProject.getCompileProjects())
 //        		{
 //        			project.addProjectReference(compileProject.getName());
 //        		}
-        		for (String compileProjectRef : gradleProject.getCompileProjectRefs())
-        		{
-        			project.addProjectReference(compileProjectRef);
-        		}
-        		for (GradleLibrary compileLibraryRef : gradleProject.getCompileLibraries())
-        		{
-        			project.addDirectoryReference(compileLibraryRef.getName(), javaLanguageId, javaContainerLanguageId);
-        		}
-        	}
+            for (String compileProjectRef : gradleProject.getCompileProjectRefs())
+            {
+                project.addProjectReference(compileProjectRef);
+            }
+            for (GradleLibrary compileLibraryRef : gradleProject.getCompileLibraries())
+            {
+                project.addDirectoryReference(compileLibraryRef.getName(), javaLanguageId, javaContainerLanguageId);
+            }
         }
+
+        // This third step was to expand the pattern references using validation engine, so nothing more to do
+        if (project.getFileReference(gradleProject.getProjectPath()) != null)
+        {
+            Logging.info("cast.dmt.discover.jee.gradle.finalyzeProjectsDone");
+
+            project.removeSourceReference(gradleProject.getProjectPath());
+
+            return false;
+        }
+
         Logging.info("cast.dmt.discover.jee.gradle.reparseProjectEnd", "PATH", project.getPath());
         return false;
     }
-    
+
 
     private void initProjectsInSettings()
     {
@@ -298,7 +295,7 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
         				gradleProject.isBuild(true);
         			}
         			else
-        			{		
+        			{
         				name = name.substring(0, name.length() - "build.gradle".length() - 1).replace("/", ":");
         				gradleProject.setName(name);
             			if (gradleSetting.getIncludedProjectRefs().contains(name))
@@ -385,11 +382,11 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
 					project.addMissingProjectRef(compileProjectRef);
 				}
 			}
- 			
+
     	}
 		//}
     }
-    
+
     private void validateCompileProject(GradleProject project)
     {
     	if (project.getApplyPlugins().contains("ear") || project.getApplyPlugins().contains("war") || project.getApplyPlugins().contains("jar"))
@@ -406,7 +403,7 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
 						//compileProject.setName(":" + compileProjectRef.substring(0,compileProjectRef.length() - 13).replace("/", ":"));
 					project.addCompileProject(compileProject);
 				}
-			}    		
+			}
     	}
     }
 
@@ -415,7 +412,7 @@ public class JeeGradleDiscoverer extends BasicProjectsDiscovererAdapter
     {
         return;
     }
-    
+
     private String getProjectPath(String projectName)
     {
     	return projectName.replace(":", "/") + "/build.gradle";

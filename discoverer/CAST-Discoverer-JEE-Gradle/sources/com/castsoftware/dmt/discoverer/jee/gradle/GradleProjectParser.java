@@ -22,7 +22,21 @@ public class GradleProjectParser
 	int javaWebServerLanguageId = 2;
 	int javaWebContainerLanguageId = 1;
 	int javaWebClientLanguageId = 3;
-	
+
+    static final String BUILDSCRIPTBLOCK_ALLPROJECTS = "allprojects";
+    static final String BUILDSCRIPTBLOCK_ARTIFACTS = "artifacts";
+    static final String BUILDSCRIPTBLOCK_BUILDSCRIPT = "buildscript";
+    static final String BUILDSCRIPTBLOCK_CONFIGURATIONS = "configurations";
+    static final String BUILDSCRIPTBLOCK_DEPENDENCIES = "dependencies";
+    static final String BUILDSCRIPTBLOCK_REPOSITORIES = "repositories";
+    static final String BUILDSCRIPTBLOCK_SOURCESETS = "sourceSets";
+    static final String BUILDSCRIPTBLOCK_SUBPROJECTS = "subprojects";
+    static final String BUILDSCRIPTBLOCK_PUBLISHING = "publishing";
+
+    /**
+     * @param gradleProject
+     *            project to fill
+     */
     public GradleProjectParser(GradleProject gradleProject)
     {
         // NOP
@@ -42,171 +56,149 @@ public class GradleProjectParser
     public static Boolean parse(String relativeFilePath, GradleProject project, String projectContent)
     {
     	BufferedReader reader = null;
+        Boolean isBuildScriptBlock = false;
+        String buildScriptBlock = "";
+        Boolean isBlock = false;
     	Boolean isInBlock = false;
     	String blockType = "";
     	List<String> blockContent = new ArrayList<String>();
     	int blockContentSection = 0;
-    	
+
+        List<String> allprojects = new ArrayList<String>();
+        List<String> artifacts = new ArrayList<String>();
+        List<String> buildscript = new ArrayList<String>();
+        List<String> configurations = new ArrayList<String>();
+        List<String> dependencies = new ArrayList<String>();
+        List<String> repositories = new ArrayList<String>();
+        List<String> sourceSets = new ArrayList<String>();
+        List<String> subprojects = new ArrayList<String>();
+        List<String> publishing = new ArrayList<String>();
+
     	reader = new BufferedReader(new StringReader(projectContent), projectContent.length());
+
+        List<String> buildScriptBlockItems = new ArrayList<String>();
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_ALLPROJECTS);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_ARTIFACTS);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_BUILDSCRIPT);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_CONFIGURATIONS);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_DEPENDENCIES);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_PUBLISHING);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_REPOSITORIES);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_SOURCESETS);
+        buildScriptBlockItems.add(BUILDSCRIPTBLOCK_SUBPROJECTS);
 
         try
         {
             for (String readline = reader.readLine(); readline != null; readline = reader.readLine())
             {
-            	Boolean isBlock = false;
-            	String line = StringHelper.trimBlank(readline);            	
+            	String line = StringHelper.trimBlank(readline);
             	if (line.length() == 0)
             		continue;
-            	if (!isInBlock)
+                if (!isBuildScriptBlock)
             	{
-            		if (line.startsWith("allprojects"))
-	            	{
-            			isBlock = true;
-	            		blockType = "allprojects";
-	            	}
-	            	else if (line.startsWith("subprojects"))
-	            	{
-            			isBlock = true;
-	            		blockType = "subprojects";
-	            	}
-	            	else if (line.startsWith("ext"))
-	            	{
-            			isBlock = true;
-	            		blockType = "ext";
-	            	}
-	            	else if (line.startsWith("eclipse"))
-	            	{
-            			isBlock = true;
-	            		blockType = "eclipse";
-	            	}
-	            	else if (line.startsWith("task "))
-	            	{
-            			isBlock = true;
-	            		blockType = "task";
-	            	}
-	            	else if (line.startsWith("def "))
-	            	{
-            			isBlock = true;
-	            		blockType = "def";
-	            	}
-	            	else if (line.startsWith("ear"))
-	            	{
-            			isBlock = true;
-	            		blockType = "ear";
-	            	}
-	            	else if (line.startsWith("war"))
-	            	{
-            			isBlock = true;
-	            		blockType = "war";
-	            	}
-	            	else if (line.startsWith("jar"))
-	            	{
-	            		if (line.startsWith("jar."))
-	            		{
-	            			
-	            		}
-	            		else
-	            		{
-	            			isBlock = true;
-	            			blockType = "jar";
-	            		}
-	            	}
-	            	else if (line.startsWith("dependencies"))
-	            	{
-	            		isBlock = true;
-	            		blockType = "dependencies";
-	            	}
-	            	else if (line.startsWith("configurations"))
-	            	{
-	            		isBlock = true;
-	            		blockType = "configurations";
-	            	}
-	            	else if (line.startsWith("sourceSets"))
-	            	{
-	            		isBlock = true;
-	            		blockType = "sourceSets";
-	            	}
-	            	else if (line.startsWith("artifacts"))
-	            	{
-	            		isBlock = true;
-	            		blockType = "artifacts";
-	            	}
-	            	else if (line.startsWith("void"))
-	            	{
-	            		isBlock = true;
-	            		blockType = "void";
-	            	}
-                	else if (line.startsWith("apply plugin"))
-                	{
-                		try
-                		{
-                			String applyPlugin = line.substring(line.indexOf("'") + 1, line.length() - 1);
-                			if (applyPlugin.length() > 0)
-                				project.addApplyPlugins(applyPlugin);
-                		}
-                		catch (IndexOutOfBoundsException e)
-                		{
-                			// 
-                		}
-                	}
-                	else if (line.startsWith("apply from"))
-                	{
-                		try
-                		{
-                			String filename = line.substring(line.indexOf("\""), line.length() - 1);
-                			filename = "dist.gradle";
-                			project.addIncludedFiles(filename);
-                		}
-                		catch (IndexOutOfBoundsException e)
-                		{
-                			// 
-                		}
-                	}
-                	else if (line.startsWith("build.dependsOn"))
-                	{
-                		project.isBuild(true);
-                	}
-            		
-            		if (isBlock)
-            		{
-            			isInBlock = true;
-	            		blockContent.clear();
-	            		blockContentSection = 0;
-	            		// special case: { not inline
-	            		if (line.contains("{"))
-	            		{
-	            			blockContentSection += addBlockContent(blockContent,line.substring(blockType.length()));
-	            			if (blockContentSection <= 0)
-	            			{
-	            				isInBlock = false;
-	            				blockType = "";
-	            			}
-	            		}
-	            	}
-            	}
-            	else
-            	{
-        			// in a block
-            		blockContentSection += addBlockContent(blockContent,line);
-            		if (blockContentSection <= 0)
-            		{
-            			//TODO: parse the block content
-            			if ("void".equals(blockType))
-            				parseBlock(blockType, project, blockContent);
-            			if ("dependencies".equals(blockType))
-            				parseBlock(blockType, project, blockContent);
-            			if ("sourceSets".equals(blockType))
-            				parseBlockSourceSets(blockType, project, blockContent);
-            			if ("jar".equals(blockType))
-            				parseBlockJar(blockType, project, blockContent);
-            			if ("ext".equals(blockType))
-            				parseBlockExt(blockType, project, blockContent);
-            			isInBlock = false;
-            			isBlock = false;
-            			blockType = "";
-            		}
-            	}
+                    for (String buildScriptBlockItem : buildScriptBlockItems)
+                        if (line.startsWith(buildScriptBlockItem))
+                        {
+                            isBuildScriptBlock = true;
+                            buildScriptBlock = buildScriptBlockItem;
+                            blockContent.clear();
+                            blockContentSection += addBlockContent(blockContent, line);
+                            break;
+                        }
 
+                    // if (line.startsWith(BUILDSCRIPTBLOCK_BUILDSCRIPT))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_BUILDSCRIPT;
+                    // blockContent.clear();
+                    // blockContent.add(line);
+                    // }
+                    // else if (line.startsWith(BUILDSCRIPTBLOCK_ALLPROJECTS))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_ALLPROJECTS;
+                    // allprojects.add(line);
+                    // blockContent = allprojects;
+                    // }
+                    // else if (line.startsWith(BUILDSCRIPTBLOCK_SUBPROJECTS))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_SUBPROJECTS;
+                    // subprojects.add(line);
+                    // blockContent = subprojects;
+                    // }
+                    // else if (line.startsWith(BUILDSCRIPTBLOCK_DEPENDENCIES))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_DEPENDENCIES;
+                    // dependencies.add(line);
+                    // blockContent = dependencies;
+                    // }
+                    // else if (line.startsWith(BUILDSCRIPTBLOCK_CONFIGURATIONS))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_CONFIGURATIONS;
+                    // configurations.add(line);
+                    // blockContent = configurations;
+                    // }
+                    // else if (line.startsWith(BUILDSCRIPTBLOCK_SOURCESETS))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_SOURCESETS;
+                    // sourceSets.add(line);
+                    // blockContent = sourceSets;
+                    // }
+                    // else if (line.startsWith(BUILDSCRIPTBLOCK_ARTIFACTS))
+                    // {
+                    // isBuildScriptBlock = true;
+                    // buildScriptBlock = BUILDSCRIPTBLOCK_ARTIFACTS;
+                    // artifacts.add(line);
+                    // blockContent = artifacts;
+                    // }
+                    // else
+                    // {
+                        // properties for project
+                        if (line.startsWith("apply plugin"))
+                        {
+                            try
+                            {
+                                String applyPlugin = line.substring(line.indexOf("'") + 1, line.length() - 1);
+                                if (applyPlugin.length() > 0)
+                                    project.addApplyPlugins(applyPlugin);
+                            }
+                            catch (IndexOutOfBoundsException e)
+                            {
+                                //
+                            }
+                        }
+                    // }
+            	}
+                else
+                {
+                    blockContentSection += addBlockContent(blockContent, line);
+                    if (blockContentSection <= 0)
+                    {
+                        isBuildScriptBlock = false;
+                        if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_ALLPROJECTS))
+                            allprojects = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_ARTIFACTS))
+                            artifacts = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_BUILDSCRIPT))
+                            buildscript = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_CONFIGURATIONS))
+                            configurations = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_DEPENDENCIES))
+                            dependencies = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_PUBLISHING))
+                            publishing = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_REPOSITORIES))
+                            repositories = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_SOURCESETS))
+                            sourceSets = blockContent;
+                        else if (buildScriptBlock.equals(BUILDSCRIPTBLOCK_SUBPROJECTS))
+                            sourceSets = blockContent;
+                    }
+                }
             }
         }
         catch (IOException e)
@@ -223,6 +215,130 @@ public class GradleProjectParser
         }
         return true;
     }
+
+    // private parse_old()
+    // {
+    // if (!isInBlock)
+    // {
+    // if (line.startsWith("apply plugin"))
+    // {
+    // try
+    // {
+    // String applyPlugin = line.substring(line.indexOf("'") + 1, line.length() - 1);
+    // if (applyPlugin.length() > 0)
+    // project.addApplyPlugins(applyPlugin);
+    // }
+    // catch (IndexOutOfBoundsException e)
+    // {
+    // //
+    // }
+    // }
+    // else if (line.startsWith("apply from"))
+    // {
+    // try
+    // {
+    // String filename = line.substring(line.indexOf("\""), line.length() - 1);
+    // filename = "dist.gradle";
+    // project.addIncludedFiles(filename);
+    // }
+    // catch (IndexOutOfBoundsException e)
+    // {
+    // //
+    // }
+    // }
+    // else if (line.startsWith("ext"))
+    // {
+    // isBlock = true;
+    // blockType = "ext";
+    // }
+    // else if (line.startsWith("eclipse"))
+    // {
+    // isBlock = true;
+    // blockType = "eclipse";
+    // }
+    // else if (line.startsWith("task "))
+    // {
+    // isBlock = true;
+    // blockType = "task";
+    // }
+    // else if (line.startsWith("def "))
+    // {
+    // isBlock = true;
+    // blockType = "def";
+    // }
+    // else if (line.startsWith("ear"))
+    // {
+    // isBlock = true;
+    // blockType = "ear";
+    // }
+    // else if (line.startsWith("war"))
+    // {
+    // isBlock = true;
+    // blockType = "war";
+    // }
+    // else if (line.startsWith("jar"))
+    // {
+    // if (line.startsWith("jar."))
+    // {
+    //
+    // }
+    // else
+    // {
+    // isBlock = true;
+    // blockType = "jar";
+    // }
+    // }
+    // else if (line.startsWith("void"))
+    // {
+    // isBlock = true;
+    // blockType = "void";
+    // }
+    // else if (line.startsWith("build.dependsOn"))
+    // {
+    // project.isBuild(true);
+    // }
+    //
+    // if (isBlock)
+    // {
+    // isInBlock = true;
+    // blockContent.clear();
+    // blockContentSection = 0;
+    // // special case: { not inline
+    // if (line.contains("{"))
+    // {
+    // blockContentSection += addBlockContent(blockContent,line.substring(blockType.length()));
+    // if (blockContentSection <= 0)
+    // {
+    // isInBlock = false;
+    // blockType = "";
+    // }
+    // }
+    // }
+    // }
+    // else
+    // {
+    // // in a block
+    // blockContentSection += addBlockContent(blockContent,line);
+    // if (blockContentSection <= 0)
+    // {
+    // //TODO: parse the block content
+    // if ("void".equals(blockType))
+    // parseBlock(blockType, project, blockContent);
+    // if ("dependencies".equals(blockType))
+    // parseBlock(blockType, project, blockContent);
+    // if ("sourceSets".equals(blockType))
+    // parseBlockSourceSets(blockType, project, blockContent);
+    // if ("jar".equals(blockType))
+    // parseBlockJar(project, blockContent);
+    // if ("ext".equals(blockType))
+    // parseBlockExt(project, blockContent);
+    // isInBlock = false;
+    // isBlock = false;
+    // blockType = "";
+    // }
+    // }
+    //
+    // }
 
     private static int addBlockContent(List<String> blockContent, String line)
     {
@@ -260,7 +376,7 @@ public class GradleProjectParser
     						blockContent.add("}");
     					}
     					if (line.length() > pos2 + 1)
-    						nb += addBlockContent(blockContent, line.substring(pos2 + 1));					
+    						nb += addBlockContent(blockContent, line.substring(pos2 + 1));
     				}
     			}
     			else
@@ -275,7 +391,7 @@ public class GradleProjectParser
 					}
 					if (line.length() > pos1 + 1)
 						nb += addBlockContent(blockContent, line.substring(pos1 + 1));
-    			}    			
+    			}
     		}
     		else
     		{
@@ -301,7 +417,7 @@ public class GradleProjectParser
 		return nb;
     }
 
-    private static void parseBlockJar(String blockType, GradleProject project, List<String> blockContent)
+    private static void parseBlockJar(GradleProject project, List<String> blockContent)
     {
     	for (String line : blockContent)
     	{
@@ -309,10 +425,66 @@ public class GradleProjectParser
     		{
     			project.addApplyPlugins("jarDisable");
     			project.removeApplyPlugins("jar");
+                return;
+            }
+            else if (line.startsWith("baseName"))
+            {
+                int index = line.indexOf("=");
+                if (index > 0)
+                {
+                    String baseName = line.substring(index + 1).trim();
+                    project.setBaseName(baseName.replace("'", ""));
+                }
     		}
+            else if (line.startsWith("appendix"))
+            {
+                int index = line.indexOf("=");
+                if (index > 0)
+                {
+                    String appendix = line.substring(index + 1).trim();
+                    project.setAppendix(appendix.replace("'", ""));
+                }
+            }
+            else if (line.startsWith("version"))
+            {
+                int index = line.indexOf("=");
+                if (index > 0)
+                {
+                    String version = line.substring(index + 1).trim();
+                    project.setVersion(version.replace("'", ""));
+                }
+            }
+            else if (line.startsWith("classifier"))
+            {
+                int index = line.indexOf("=");
+                if (index > 0)
+                {
+                    String classifier = line.substring(index + 1).trim();
+                    project.setVersion(classifier.replace("'", ""));
+                }
+            }
+            else if (line.startsWith("extension"))
+            {
+                int index = line.indexOf("=");
+                if (index > 0)
+                {
+                    String extension = line.substring(index + 1).trim();
+                    project.setVersion(extension.replace("'", ""));
+                }
+            }
+            else if (line.startsWith("archiveName"))
+            {
+                int index = line.indexOf("=");
+                if (index > 0)
+                {
+                    String archiveName = line.substring(index + 1).trim();
+                    project.setArchiveName(archiveName.replace("'", ""));
+                }
+            }
     	}
     }
-    private static void parseBlockExt(String blockType, GradleProject project, List<String> blockContent)
+
+    private static void parseBlockExt(GradleProject project, List<String> blockContent)
     {
     	for (String line : blockContent)
     	{
@@ -334,7 +506,7 @@ public class GradleProjectParser
     	Boolean isInsideListProjects = false;
     	for (String line : blockContent)
     	{
-    		
+
 	    	if (isInsideListProjects)
 	    	{
 	        	if ("]".equals(line))
@@ -444,7 +616,7 @@ public class GradleProjectParser
 	    	{
 	    		//
 	    	}
-	    	
+
     	}
     }
 
@@ -505,7 +677,7 @@ public class GradleProjectParser
         		project.setMainRootPath(relativeFilePath.substring(0,relativeFilePath.length() - "settings.gradle".length()));
             for (String readline = reader.readLine(); readline != null; readline = reader.readLine())
             {
-            	String line = StringHelper.trimBlank(readline);            	
+            	String line = StringHelper.trimBlank(readline);
             	if (line.length() != 0 && line.startsWith("include"))
             	{
     	    		String projectName = "";
@@ -561,7 +733,7 @@ public class GradleProjectParser
         }
         return true;
     }
-    
+
     private static String extractReference(String line)
     {
     	String reference = "";
