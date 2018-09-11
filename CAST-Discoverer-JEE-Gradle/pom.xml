@@ -39,13 +39,21 @@
         <version>4.12</version>
         <scope>test</scope>
     </dependency>
-
-
     <dependency>
         <groupId>com.castsoftware</groupId>
         <artifactId>CAST-DeliveryEngine</artifactId>
         <version>${aipVersion}</version>
         <classifier>tests</classifier>
+    </dependency>
+    <dependency>
+        <groupId>com.castsoftware</groupId>
+        <artifactId>CAST-DeliveryEngine</artifactId>
+        <version>${aipVersion}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.castsoftware</groupId>
+        <artifactId>CAST-Techno-JEE</artifactId>
+        <version>${aipVersion}</version>
     </dependency>
   </dependencies>
   <build>
