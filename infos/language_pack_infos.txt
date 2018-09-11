@@ -1,4 +1,0 @@
-LPVERS=1.0.0
-EXT_NAME=JEE-GradleProjectDiscoverer
-DEPENDENCIES=dmtjeegradlediscoverer-1.0.0.dmtplugin
-PLUGIN_DELIVERY=dmtjeegradlediscoverer
