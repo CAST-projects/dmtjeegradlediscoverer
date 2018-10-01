@@ -84,6 +84,8 @@ if not defined EXTVERS (
 
 robocopy %ROBOPT% %SRC_DIR%\%PROJNAME%\target %PACK_DIR%\TOOLS\Plugins\%EXTNAME%-%EXTVERS% %EXTNAME%-%EXTVERS%.jar 
 if errorlevel 8 goto endclean
+ren %PACK_DIR%\TOOLS\Plugins\%EXTNAME%-%EXTVERS%\%EXTNAME%-%EXTVERS%.jar %EXTNAME%-%EXTVERS%.mda
+if errorlevel 1 goto endclean
 
 :: ========================================================================================
 :: Nuget packaging
